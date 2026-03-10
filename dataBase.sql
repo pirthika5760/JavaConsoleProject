@@ -1,0 +1,10 @@
+create database AttendanceDB;
+use AttendanceDB;
+create table users userid int primary key auto_increment,email varchar(100),password varchar(255),role varchar(100);
+create table student sid int primary key auto_increment,name varchar(50), userid int references users(userid),classid int,section_id int,count int;
+create table teacher tid int primary key auto_increment,name varchar(50),userid int references users(userid),class_id int ,section_id int ,subject_id int , count int;
+create table attendance aid int primary key auto_increment, sid int references student(sid),date Date,status varchar(10),ismarked varchar(20);
+create table class class_id int primary key auto_increment,clas_name varchar(10);
+create table secton section_id int primary key auto_increment, section_name varchar(5);
+create table subject subject_id int primary key auto_increment, subject_name varchar(50);
+create table config id int primary key auto_increment,totalWorkingDays int , totalHolidays int;
