@@ -4,33 +4,22 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 public class Teacher extends User {
 	public static int teacherId = 101;
-//	public String password;
 	public int Id;
 	public String Class;
 	public String subject;
-//	public String userEmail;
 	String name;
 	String section;
 	String role;
 	String dateOfBirth;
 	String mobileNumber;
-//	long aathar;
 
-	Attendancemanager am = new Attendancemanager();
 	public ArrayList<Student> students = new ArrayList<>();
 	ArrayList<Teacher> teachers = new ArrayList<>();
 	public ArrayList<ClassAssign> assigns = new ArrayList<>();
-
-	DBQuerriesExe db = new DBQuerriesExe();
-	User u;
-	Student s;
 
 //	public Teacher(String userEmail, String password) {
 //		super(userEmail, password);
@@ -141,7 +130,9 @@ public class Teacher extends User {
 //	}
 //
 	void viewMyClassDetails(int teacherId) {
-		db.viewMyClassDetails2(teacherId);
+		if (db != null) {
+			db.viewMyClassDetails2(teacherId);
+		}
 	}
 	
 	public void showMenu() {

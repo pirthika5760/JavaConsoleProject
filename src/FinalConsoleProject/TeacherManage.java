@@ -1,23 +1,16 @@
 package FinalConsoleProject;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.Scanner;
-
 public class TeacherManage {
 	AttendanceTrackerApp logger;
-	Commands com;
-	DBQuerriesExe db = new DBQuerriesExe();
+	DBQuerriesExe db;
 
-	public void getConnectionFromDb(Commands c) {
-		this.com = c;
+	// Constructor accepting shared DBQuerriesExe
+	TeacherManage(DBQuerriesExe db) {
+		this.db = db;
 	}
 
 	boolean isTeacherExists(int teacherId) {
-
 		return db.teacherExists(teacherId);
-
 	}
 
 	public void readTeachers() {
@@ -26,7 +19,6 @@ public class TeacherManage {
 
 	void modifyTeacherMenu(int teacherId) {
 		db.modifyTeacherMenu2(teacherId);
-
 	}
 
 	public void removeTeacher(int id) {
@@ -39,12 +31,10 @@ public class TeacherManage {
 
 	void addLoginCount(String id) {
 		db.addLoginCountDB(id);
-
 	}
 
 	int teacherLoginCount(String id) {
 		return db.teacherLoginCountDB(id);
-
 	}
 
 	public void TeacherViewAllStudents(int id) {
@@ -55,8 +45,26 @@ public class TeacherManage {
 		return db.readRoleforts(id, pass);
 	}
 
-	public boolean changePassword(String oldPassword){
-            return db.changePassword(oldPassword);
+	// Fixed: now requires oldPassword, newPassword, and teacherId
+	public boolean changePassword(String oldPassword, String newPassword, int teacherId) {
+		return db.changePassword(oldPassword, newPassword, teacherId);
+	}
+
+	// NEW: Email-based methods
+	public int getTeacherIdByEmail(String email) {
+		return db.getTeacherIdByEmail(email);
+	}
+
+	public int teacherLoginCountByEmail(String email) {
+		return db.teacherLoginCountByEmail(email);
+	}
+
+	public void addTeacherLoginCountByEmail(String email) {
+		db.addTeacherLoginCountByEmail(email);
+	}
+
+	public boolean changePasswordByEmail(String email, String oldPassword, String newPassword) {
+		return db.changePasswordVerified(email, oldPassword, newPassword);
 	}
 
 }

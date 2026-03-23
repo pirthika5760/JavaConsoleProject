@@ -1030,18 +1030,17 @@ public class DBQuerriesExe {
 		}
 	}
 
-	public void markAttendance(LocalDate date) {
-		Scanner sc = new Scanner(System.in);
-
-		System.out.print("Enter Class ");
-		String className = sc.nextLine();
-
-		System.out.print("Enter Section ");
-		String section = sc.nextLine();
+	public void markAttendance(String className, String section, LocalDate date) {
 
 		ArrayList<Student> students = getStudents(className, section);
 		System.out.println("Students found: " + students.size());
 
+		if (students.isEmpty()) {
+			System.out.println("No students found for " + className + " - " + section);
+			return;
+		}
+
+		Scanner sc = new Scanner(System.in);
 		for (Student s : students) {
 
 			if (isAttendanceMarked(s.Id, date)) {
@@ -1056,7 +1055,7 @@ public class DBQuerriesExe {
 		}
 
 		System.out.println("Attendance completed");
-		log.info("attendance marked successfully for a student");
+		log.info("attendance marked successfully");
 	}
 
 	boolean isAttendanceMarkedForClass2(String className, String section, LocalDate date) {
@@ -1139,24 +1138,26 @@ public class DBQuerriesExe {
 		}
 	}
 
-	public boolean changePassword(String oldPassword) {
-		String sql = Commands.UPDATE_PASSWORD;
+	public boolean changePassword(String oldPassword, String newPassword, int teacherId) {
+		String sql = "update users set password=AES_ENCRYPT(?,'key') where userid=(select userid from teacher where tid=?) and password=AES_ENCRYPT(?,'key')";
 		try (PreparedStatement ps = con.prepareStatement(sql)) {
-			ps.setString(1, oldPassword);
+			ps.setString(1, newPassword);
+			ps.setInt(2, teacherId);
+			ps.setString(3, oldPassword);
 
-			ResultSet rs = ps.executeQuery();
+			int rows = ps.executeUpdate();
 
-			if (rs.next()) {
-				System.out.println("password changed succesfully");
-				log.info("password changed succesfully");
+			if (rows > 0) {
+				System.out.println("Password changed successfully");
+				log.info("password changed successfully for teacher id:" + teacherId);
 				return true;
 			} else {
-				System.out.println("can not change password");
+				System.out.println("Old password is incorrect. Cannot change password.");
 			}
 
 		} catch (Exception e) {
-			System.out.println("invalid password");
-			log.error("can not change the password");
+			System.out.println("Error changing password");
+			log.error("can not change the password for teacher id:" + teacherId, e);
 		}
 		return false;
 	}
@@ -1210,8 +1211,9 @@ public class DBQuerriesExe {
 
 				System.out.println("Present    : " + rs.getInt("attendancecount"));
 				System.out.println("Absent     : " + rs.getInt("leavecount"));
+				double percentage = (totalWorkingDays > 0) ? (rs.getInt("attendancecount") * 100.0) / totalWorkingDays : 0;
 				System.out.println(
-						"Attendance Percentage :" + rs.getInt("attendancecount") / totalWorkingDays * 100 + "%");
+						"Attendance Percentage : " + String.format("%.2f", percentage) + "%");
 
 				System.out.println("----------------------------------");
 			}
@@ -1296,16 +1298,18 @@ public class DBQuerriesExe {
 
 	}
 
-	void addLoginCountToStudent2() {
+	void addLoginCountToStudent2(String id) {
 		String qry = Commands.ADD_LOGIN_COUNT_STUDENT;
 		try {
+			int sid = Integer.valueOf(id);
 			PreparedStatement ps = con.prepareStatement(qry);
-			ResultSet rs = ps.executeQuery();
-			log.info("login count to student added");
+			ps.setInt(1, sid);
+			ps.executeUpdate();
+			log.info("login count to student added. student id:" + id);
 
 		} catch (Exception e) {
-			System.out.println("Invalid iyd");
-			log.error("can not set login count to student");
+			System.out.println("Invalid id");
+			log.error("can not set login count to student", e);
 		}
 
 	}
@@ -1347,5 +1351,127 @@ public class DBQuerriesExe {
 		}
 		return 0;
 
+	}
+
+	// ========== NEW UNIFIED EMAIL-BASED METHODS ==========
+
+	public String loginByEmail(String email, String password) {
+		try {
+			PreparedStatement ps = con.prepareStatement(Commands.LOGIN_BY_EMAIL);
+			ps.setString(1, email);
+			ps.setString(2, password);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				log.info("User logged in successfully: " + email);
+				return rs.getString("role");
+			}
+		} catch (Exception e) {
+			log.error("Login failed for: " + email, e);
+		}
+		return null;
+	}
+
+	public int getTeacherIdByEmail(String email) {
+		try {
+			PreparedStatement ps = con.prepareStatement(Commands.GET_TID_BY_EMAIL);
+			ps.setString(1, email);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				return rs.getInt("tid");
+			}
+		} catch (Exception e) {
+			log.error("Cannot get teacher ID for email: " + email, e);
+		}
+		return -1;
+	}
+
+	public int getStudentIdByEmail(String email) {
+		try {
+			PreparedStatement ps = con.prepareStatement(Commands.GET_SID_BY_EMAIL);
+			ps.setString(1, email);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				return rs.getInt("sid");
+			}
+		} catch (Exception e) {
+			log.error("Cannot get student ID for email: " + email, e);
+		}
+		return -1;
+	}
+
+	public int teacherLoginCountByEmail(String email) {
+		try {
+			PreparedStatement ps = con.prepareStatement(Commands.T_COUNT_BY_EMAIL);
+			ps.setString(1, email);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) { return rs.getInt(1); }
+		} catch (Exception e) {
+			log.error("Cannot get teacher login count for: " + email, e);
+		}
+		return 0;
+	}
+
+	public int studentLoginCountByEmail(String email) {
+		try {
+			PreparedStatement ps = con.prepareStatement(Commands.S_COUNT_BY_EMAIL);
+			ps.setString(1, email);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) { return rs.getInt(1); }
+		} catch (Exception e) {
+			log.error("Cannot get student login count for: " + email, e);
+		}
+		return 0;
+	}
+
+	public void addTeacherLoginCountByEmail(String email) {
+		try {
+			PreparedStatement ps = con.prepareStatement(Commands.ADD_COUNT_TEACHER_BY_EMAIL);
+			ps.setString(1, email);
+			ps.executeUpdate();
+		} catch (Exception e) {
+			log.error("Cannot update teacher login count for: " + email, e);
+		}
+	}
+
+	public void addStudentLoginCountByEmail(String email) {
+		try {
+			PreparedStatement ps = con.prepareStatement(Commands.ADD_COUNT_STUDENT_BY_EMAIL);
+			ps.setString(1, email);
+			ps.executeUpdate();
+		} catch (Exception e) {
+			log.error("Cannot update student login count for: " + email, e);
+		}
+	}
+
+	public void changePasswordByEmail(String email, String newPassword) {
+		try {
+			PreparedStatement ps = con.prepareStatement(Commands.CHANGE_PASSWORD_BY_EMAIL);
+			ps.setString(1, newPassword);
+			ps.setString(2, email);
+			ps.executeUpdate();
+			System.out.println("Password changed successfully");
+		} catch (Exception e) {
+			System.out.println("Error changing password");
+			log.error("Cannot change password for: " + email, e);
+		}
+	}
+
+	public boolean changePasswordVerified(String email, String oldPassword, String newPassword) {
+		try {
+			PreparedStatement ps = con.prepareStatement(Commands.CHANGE_PASSWORD_VERIFIED);
+			ps.setString(1, newPassword);
+			ps.setString(2, email);
+			ps.setString(3, oldPassword);
+			int rows = ps.executeUpdate();
+			if (rows > 0) {
+				return true;
+			} else {
+				System.out.println("Old password is incorrect");
+			}
+		} catch (Exception e) {
+			System.out.println("Error changing password");
+			log.error("Cannot change password for: " + email, e);
+		}
+		return false;
 	}
 }

@@ -1,38 +1,23 @@
 package FinalConsoleProject;
 
-import java.io.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Admin extends User {
 	public ArrayList<Teacher> teachers = new ArrayList<>();
 	public ArrayList<Student> students = new ArrayList<>();
-	public Attendancemanager am = new Attendancemanager();
 	Scanner sc = new Scanner(System.in);
 	String role;
-	DBQuerriesExe Db = new DBQuerriesExe();
-	Commands com;
-	Connection con;
 	Validator validate = new Validator();
-	User u;
-	Teacher t;
-	Student s;
-	TeacherManage tm = new TeacherManage();
-	StudentManage sm = new StudentManage();
 
-	public Admin(String userEmail, String password, Attendancemanager am) {
-		super(userEmail, password);
-		this.am = am;
-
+	public Admin(String userEmail, String password, DBQuerriesExe db) {
+		super(userEmail, password, db);
+		this.role = "admin";
 	}
 
 	public Admin(String userEmail, String password) {
 		super(userEmail, password);
 		this.role = "admin";
-
 	}
 
 	public String getRole() {

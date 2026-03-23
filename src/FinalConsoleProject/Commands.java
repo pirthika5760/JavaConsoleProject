@@ -80,5 +80,29 @@ public class Commands {
 	final static String ADD_COUNT_TO_TEACHER = "update teacher set count=1 where tid=?";
 
 	final static String TOTAL_WORKING_DAYS = "select totalWorkingDays from config where id=1";
-	final static String UPDATE_PASSWORD="update users set password=?";
+
+	// Unified login: get role by email + password
+	final static String LOGIN_BY_EMAIL = "select userid, role from users where email=? and password=AES_ENCRYPT(?,'key')";
+
+	// Get teacher tid from user email
+	final static String GET_TID_BY_EMAIL = "select t.tid from teacher t join users u on t.userid=u.userid where u.email=?";
+
+	// Get student sid from user email
+	final static String GET_SID_BY_EMAIL = "select s.sid from student s join users u on s.userid=u.userid where u.email=?";
+
+	// Teacher login count by email
+	final static String T_COUNT_BY_EMAIL = "select t.count from teacher t join users u on t.userid=u.userid where u.email=?";
+
+	// Student login count by email
+	final static String S_COUNT_BY_EMAIL = "select s.count from student s join users u on s.userid=u.userid where u.email=?";
+
+	// Add login count by email
+	final static String ADD_COUNT_TEACHER_BY_EMAIL = "update teacher t join users u on t.userid=u.userid set t.count=1 where u.email=?";
+	final static String ADD_COUNT_STUDENT_BY_EMAIL = "update student s join users u on s.userid=u.userid set s.count=1 where u.email=?";
+
+	// Change password by email (for first-time login)
+	final static String CHANGE_PASSWORD_BY_EMAIL = "update users set password=AES_ENCRYPT(?,'key') where email=?";
+
+	// Change password with old password verification (for teacher menu)
+	final static String CHANGE_PASSWORD_VERIFIED = "update users set password=AES_ENCRYPT(?,'key') where email=? and password=AES_ENCRYPT(?,'key')";
 }   

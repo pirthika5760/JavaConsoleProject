@@ -47,6 +47,7 @@ public class AttendanceTrackerApp {
 
 			switch (ch) {
 			case 1: {
+				User u;
 				User user = null;
 				String role = null;
 
@@ -61,29 +62,26 @@ public class AttendanceTrackerApp {
 						password = sc.nextLine();
 
 						role = loginManager.getRole(userEmail);
-
-						if (role == null || !role.equals("admin")) {
-							System.out.println("Invalid email. Please enter a valid admin email.");
-							log.error("Admin entered an invalid or non-admin email: " + userEmail);
-							continue;
-						}
-
+                       
 						try {
 							user = loginManager.login(userEmail, password, role);
-							if (user == null) {
-								System.out.println("Invalid email or password. Please try again.");
-								log.error("Admin login returned null for email: " + userEmail);
-								continue;
-							}
 							break;
 						} catch (Exception e) {
-							System.out.println("Invalid email or password. Please try again.");
+							System.out.println("Invalid email or password+S");
 							log.error("Admin entered the invalid email or password", e);
+						}
+						try {
+							user.showMenu();
+
+						} catch (Exception e) {
+							System.out.println("No user Exist");
+							log.error("Invalid Email for Admin", e);
 						}
 					}
 					while (true) {
 
-							user.showMenu();
+						if (db.checkUserExist(userEmail, password)) {
+
 							log.info("Admin menu showed");
 							int choice;
 							while (true) {
@@ -126,6 +124,7 @@ public class AttendanceTrackerApp {
 									case 1: {
 
 										user.teacherdetailsCollector();
+
 										break;
 									}
 									case 2:
@@ -153,7 +152,6 @@ public class AttendanceTrackerApp {
 										while (true) {
 											System.out.println("Enter the id of the teacher");
 											int removeTeacherID = sc.nextInt();
-											sc.nextLine();
 											if (tm.isTeacherExists(removeTeacherID)) {
 												tm.removeTeacher(removeTeacherID);
 
@@ -230,8 +228,8 @@ public class AttendanceTrackerApp {
 										while (true) {
 											System.out.println("Enter the id of the student");
 											int removeStudentID = sc.nextInt();
-											sc.nextLine();
 											if (sm.isStudentExists(removeStudentID)) {
+												sc.nextLine();
 												sm.removeStudent(removeStudentID);
 												log.info("Student removed by admin");
 												break;
@@ -387,6 +385,8 @@ public class AttendanceTrackerApp {
 								break;
 							}
 						}
+
+					}
 				}
 				break;
 			}

@@ -1,8 +1,5 @@
 package FinalConsoleProject;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Scanner;
 
 abstract public class User {
@@ -10,12 +7,17 @@ abstract public class User {
 	String password;
 	String role;
 	AttendanceTrackerApp logger;
-	DBQuerriesExe db = new DBQuerriesExe();
+	DBQuerriesExe db;
 
 	User(String userEmail, String password) {
 		this.userEmail = userEmail;
 		this.password = password;
+	}
 
+	User(String userEmail, String password, DBQuerriesExe db) {
+		this.userEmail = userEmail;
+		this.password = password;
+		this.db = db;
 	}
 
 
